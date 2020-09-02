@@ -1,52 +1,57 @@
-import React from 'react'
+import React, { useState, FormEvent } from 'react'
 import { FiChevronRight } from 'react-icons/fi';
+import api from '../../services/api';
 
 import logo from '../../assets/logo.svg';
 
 import { Title, Form, Repositories } from './styles';
 
+interface Repository {
+  full_name: string;
+  description: string;
+  owner: {
+    login: string;
+    avatar_url: string;
+  }
+}
+
 const Dashboard: React.FC = () => {
-    return (
-        <>
-            <img src={logo} alt="Github Explorer" />
-            <Title>Explore repositórios no github</Title>
+  const [newRepo, setNewRepo] = useState('');
+  const [repositories, setRepositories] = useState<Repository[]>([])
 
-            <Form>
-                <input placeholder="Digite o nome do repositório" />
-                <button type="submit">Pesquisar</button>
-            </Form>
+  async function handleAddRepository(e: FormEvent<HTMLFormElement>): Promise<void> {
+    e.preventDefault();
+    const response = await api.get<Repository>(`/repos/${newRepo}`)
+    const repository = response.data;
+    setRepositories([...repositories, repository]);
+    setNewRepo('')
+  }
 
-            <Repositories>
-                <a href="teste">
-                    <img src="https://avatars0.githubusercontent.com/u/31516475?s=460&u=e2be85f1b7be7a9cd728c0fe9fd0ad8552d9cd57&v=4" alt="William" />
-                    <div>
-                        <strong>williamwjd/Sirius</strong>
-                        <p>Projeto desenvolvido para controle de estoque do CPD</p>
-                    </div>
+  return (
+    <>
+      <img src={logo} alt="Github Explorer" />
+      <Title>Explore repositórios no github</Title>
 
-                    <FiChevronRight size={20} />
-                </a>
-                <a href="teste">
-                    <img src="https://avatars0.githubusercontent.com/u/31516475?s=460&u=e2be85f1b7be7a9cd728c0fe9fd0ad8552d9cd57&v=4" alt="William" />
-                    <div>
-                        <strong>williamwjd/Sirius</strong>
-                        <p>Projeto desenvolvido para controle de estoque do CPD</p>
-                    </div>
+      <Form onSubmit={handleAddRepository}>
+        <input placeholder="Digite o nome do repositório" value={newRepo} onChange={e => setNewRepo(e.target.value)} />
+        <button type="submit">Pesquisar</button>
+      </Form>
 
-                    <FiChevronRight size={20} />
-                </a>
-                <a href="teste">
-                    <img src="https://avatars0.githubusercontent.com/u/31516475?s=460&u=e2be85f1b7be7a9cd728c0fe9fd0ad8552d9cd57&v=4" alt="William" />
-                    <div>
-                        <strong>williamwjd/Sirius</strong>
-                        <p>Projeto desenvolvido para controle de estoque do CPD</p>
-                    </div>
+      <Repositories>
+        {repositories.map(repo => (
+          <a href="teste" key={repo.full_name}>
+            <img src={repo.owner.avatar_url} alt={repo.owner.login} />
+            <div>
+              <strong>{repo.full_name}</strong>
+              <p>{repo.description}</p>
+            </div>
 
-                    <FiChevronRight size={20} />
-                </a>
-            </Repositories>
-        </>
-    )
+            <FiChevronRight size={20} />
+          </a>
+        ))}
+      </Repositories>
+    </>
+  )
 }
 
 export default Dashboard
